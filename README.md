@@ -1,5 +1,5 @@
 # Ghost Downloader 3 CLI (`gd3`)
-
+Entirely vibe-coded if you cant tell
 Multi-protocol downloader CLI powered by the [Ghost Downloader 3](https://github.com/XiaoYouChR/Ghost-Downloader-3) engine, designed for headless/terminal use.
 
 ## Install
