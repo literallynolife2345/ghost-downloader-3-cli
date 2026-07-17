@@ -1,61 +1,95 @@
+"""
+Feature-pack service for Ghost Downloader 3.
+
+Manages feature pack lifecycle (load, start, stop) and URL parsing.
+"""
+
 from __future__ import annotations
 
 from dataclasses import replace
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from PySide6.QtCore import QObject
-
 from app.config.paths import executableDir
-from app.platform import file_association
 from app.services.pack_loader import loadPacks
 
 if TYPE_CHECKING:
     from app.models.pack import FeaturePack, TaskParser, FileType, PackPage
     from app.models.task import Task, TaskOptions
-    from PySide6.QtWidgets import QWidget
-    from app.view.components.setting_card_group import CollapsibleSettingCardGroup
 
 
-class FeatureService(QObject):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+class FeatureService:
+    """Discovers, loads, and manages feature packs.
+
+    The core responsibility is matching URLs to the right pack parser and
+    producing ``Task`` objects.
+    """
+
+    def __init__(self):
         self._packs: list[FeaturePack] = []
         self._parsers: list[TaskParser] = []
-        self._packByPackId: dict[str, FeaturePack] = {}
+        self._pack_by_pack_id: dict[str, FeaturePack] = {}
+
+    # ── Properties ────────────────────────────────────────────────
 
     @property
     def packs(self) -> list[FeaturePack]:
-        return self._packs
+        return list(self._packs)
+
+    @property
+    def parsers(self) -> list[TaskParser]:
+        return list(self._parsers)
+
+    # ── Lifecycle ─────────────────────────────────────────────────
 
     def load(self) -> None:
-        for pack in loadPacks(executableDir / "features"):
+        """Load all feature packs from the ``features/`` directory."""
+        features_dir = executableDir / "features"
+        for pack in loadPacks(features_dir):
             self._register(pack)
 
     def start(self) -> None:
+        """Call ``start()`` on every loaded pack."""
         for pack in self._packs:
-            pack.start()
+            try:
+                pack.start()
+            except Exception as e:
+                from loguru import logger
+                logger.opt(exception=e).warning("pack {}.start() failed", pack.packId)
+
+    def stop(self) -> None:
+        """Call ``stop()`` on every loaded pack."""
+        for pack in self._packs:
+            try:
+                pack.stop()
+            except Exception as e:
+                from loguru import logger
+                logger.opt(exception=e).warning("pack {}.stop() failed", pack.packId)
+
+    # ── Registration ──────────────────────────────────────────────
 
     def _register(self, pack: FeaturePack) -> None:
         self._packs.append(pack)
-        self._packByPackId[pack.packId] = pack
-        self._parsers.extend(pack.parsers())
-        self._parsers.sort(key=lambda p: p.priority)
-        if pack.config:
-            toggle = pack.config.fileAssociationToggle()
-            if toggle:
-                toggle.connect(self._registerFileAssociations)
+        self._pack_by_pack_id[pack.packId] = pack
+        for parser in pack.parsers():
+            if hasattr(parser, 'priority'):
+                self._parsers.append(parser)
+        self._parsers.sort(key=lambda p: getattr(p, 'priority', 100))
+
+    # ── Task parsing ───────────────────────────────────────────────
 
     async def parse(self, options: TaskOptions) -> Task:
+        """Find the first parser that matches *options* and produce a ``Task``."""
+        # Apply identity presets based on URL host
         if not options.clientProfile:
             from app.client import matchIdentityPreset
             host = urlparse(options.url).hostname or ""
             preset = matchIdentityPreset(host)
             if preset is not None:
                 kwargs = {}
-                if preset["clientProfile"]:
+                if preset.get("clientProfile"):
                     kwargs["clientProfile"] = preset["clientProfile"]
-                if preset["userAgent"]:
+                if preset.get("userAgent"):
                     kwargs["userAgent"] = preset["userAgent"]
                 if kwargs:
                     options = replace(options, **kwargs)
@@ -69,39 +103,13 @@ class FeatureService(QObject):
                 return task
         raise ValueError(f"No parser matched: {options.url}")
 
-    def matchPassive(self, url: str) -> bool:
+    def match_passive(self, url: str) -> bool:
+        """Check if any parser *passively* matches *url* (for clipboard etc.)."""
         from app.models.task import TaskOptions
         options = TaskOptions(url=url)
         return any(parser.matchPassive(options) for parser in self._parsers)
 
-    def optionCards(self, task: Task, parent=None) -> list[QWidget]:
-        pack = self._packByPackId.get(task.packId)
-        return pack.optionCards(task, parent) if pack else []
-
-    def editCards(self, task: Task, parent=None) -> list[QWidget]:
-        pack = self._packByPackId.get(task.packId)
-        return pack.editCards(task, parent) if pack else []
-
-    def taskCard(self, task: Task, parent=None):
-        pack = self._packByPackId.get(task.packId)
-        return pack.taskCard(task, parent) if pack else None
-
-    def draftCard(self, task: Task, parent=None):
-        pack = self._packByPackId.get(task.packId)
-        return pack.draftCard(task, parent) if pack else None
-
-    def pages(self) -> list[type[PackPage]]:
-        result = []
-        for pack in self._packs:
-            result.extend(pack.pages())
-        return result
-
-    def settingGroups(self, parent: QWidget) -> list[CollapsibleSettingCardGroup]:
-        groups = []
-        for pack in self._packs:
-            if pack.config:
-                groups.extend(pack.config.settingGroups(parent))
-        return groups
+    # ── Runtimes & file types ───────────────────────────────────────
 
     def runtimes(self):
         from app.models.pack import BinaryRuntime
@@ -110,23 +118,12 @@ class FeatureService(QObject):
             result.extend(pack.runtimes())
         return result
 
-    def fileTypes(self) -> list[FileType]:
-        types = []
+    def file_types(self) -> list[FileType]:
+        types: list[FileType] = []
         for pack in self._packs:
             types.extend(pack.fileTypes())
         return types
 
-    def _registerFileAssociations(self) -> None:
-        types = []
-        for pack in self._packs:
-            if pack.config and not pack.config.isFileAssociationEnabled():
-                continue
-            types.extend(pack.fileTypes())
-        file_association.register(types)
 
-    def stop(self) -> None:
-        for pack in self._packs:
-            pack.stop()
-
-
+# Module-level singleton
 featureService = FeatureService()

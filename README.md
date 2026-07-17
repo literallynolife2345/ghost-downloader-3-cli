@@ -1,209 +1,154 @@
-<h4 align="right">
-  <a href="README_zh.md">简体中文</a> | English
-</h4>
+# Ghost Downloader 3 CLI (`gd3`)
 
-<!-- PROJECT LOGO -->
-<div align="center">
+Multi-protocol downloader CLI powered by the [Ghost Downloader 3](https://github.com/XiaoYouChR/Ghost-Downloader-3) engine, designed for headless/terminal use.
 
-![Banner](.github/assets/banner.webp)
+## Install
 
-<a href="https://trendshift.io/repositories/13847" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13847" alt="XiaoYouChR%2FGhost-Downloader-3 | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+```bash
+pip install ghost-downloader-3-cli
+```
 
-### AI-powered next-generation cross-platform multithreaded downloader
+Or with BitTorrent support:
 
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![Release][release-shield]][release-url]
-[![Downloads][downloads-shield]][release-url]
-[![QQGroup](https://img.shields.io/badge/QQ_Group-756042420-blue.svg?color=blue&style=for-the-badge)](https://qm.qq.com/q/gPk6FR1Hby)
+```bash
+pip install "ghost-downloader-3-cli[bittorrent]"
+```
 
-##### [Documentation](https://gd.xychr.com/en/docs/) · [Report Bug](https://github.com/XiaoYouChR/Ghost-Downloader-3/issues/new?template=bug_report.yml) · [Request Feature](https://github.com/XiaoYouChR/Ghost-Downloader-3/issues/new?template=feature_request.yml)
+Requires Python 3.11+. Works on Windows, macOS, and Linux.
 
-</div>
+## Quick start
 
-<!-- FEATURES -->
-## Features
+```bash
+# Download a file
+gd3 download https://example.com/video.mp4
 
-* IDM-style intelligent chunking⚡ without requiring file merging, plus AI smart acceleration 🚀
-* Frees UI resources when minimized to tray🍃 — minimal memory footprint in the background
-* Supports HTTP, Magnet / BT, FTP, M3U8, MPEG-DASH, eD2k and more 🌐
-* Emulates real-browser TLS fingerprints🥷 so downloads are less likely to be blocked by anti-bot checks
-* Parses YouTube▶️ and Bilibili videos — playlists, up to 4K/HDR, subtitles and login supported
-* Dedicated parsers for GitHub🐙 releases and HuggingFace🤗 models with mirror acceleration
-* Records M3U8 live streams📺 with real-time decryption🔓, fully supported on Android as well
-* The companion browser extension🦊 sniffs page media, takes over browser downloads, and controls tasks without leaving the browser
-* aria2-compatible RPC interface🔌 — third-party tools can push tasks directly
-* Tasks can be paused, edited✏️ (URL, headers, proxy) and resumed without losing progress
-* A complete Android version📱 with background downloading and completion notifications 🔔
+# Download to a specific folder and wait for completion
+gd3 download https://youtube.com/watch?v=... -o ~/Videos --wait
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+# Batch download from a URL list
+gd3 batch urls.txt
 
-* A downloader built out of passion, and my first Python project 😣
-* It was originally created to help a Bilibili creator integrate resources 😵‍💫
-* Thanks to Python's🐍 accessibility, this project will open plugin🧩 support in the future (plugin API is still being stabilized...)
+# See what's installed
+gd3 info
+gd3 list-packs
+```
 
-|    Platform    | Required Version |  Architectures   | Compatible |
-|:--------------:|:----------------:|:----------------:|:----------:|
-|  🐧 **Linux**  |  `glibc 2.35+`   | `x86_64`/`arm64` |     ✅      |
-| 🪟 **Windows** |      `10+`       | `x86_64`/`arm64` |     ✅      |
-|  🍎 **macOS**  |     `13.0+`      | `x86_64`/`arm64` |     ✅      |
-| 🤖 **Android** |     `10.0+`      |   `arm64-v8a`    |     ✅      |
+## Usage
 
-> [!WARNING]
-> Qt `6.6+` no longer supports CPUs without the `AVX` instruction set.
+```
+gd3 download <url> [options]
+gd3 batch <file> [options]
+gd3 list-packs
+gd3 info
+gd3 config [key] [value]
+```
 
-> [!TIP]
-> **Arch Linux AUR support**: Community-maintained packages `ghost-downloader-bin` and `ghost-downloader-git` are now available (Maintainer: [@zxp19821005](https://github.com/zxp19821005))
+### `download` / `dl`
 
-<!-- SCREEN SHOTS -->
-## Screenshots
+Download a single URL.
 
-![QQ20260326-204347](https://github.com/user-attachments/assets/3e57b113-200c-4286-91cb-b52fe7d1711c)
+| Option | Shorthand | Description |
+|--------|-----------|-------------|
+| `--output DIR` | `-o` | Output directory (default: config `downloadFolder`) |
+| `--name NAME` | `-n` | Override filename |
+| `--client-profile PROFILE` | `-p` | Browser fingerprint (auto, chrome, firefox, safari, raw) |
+| `--wait` | | Wait for download to finish |
+| `--timeout SEC` | | Max wait time (0 = unlimited, default: wait forever) |
+| `--dry-run` | | Parse URL and show info, but don't download |
 
-<!-- ROADMAP -->
-## Roadmap
+### `batch` / `b`
 
-- ❌ Make the plugin API public
-- ❌ Enhanced task editing (powerful features like binding multiple Sessions to one task)
+Download multiple URLs from a file (one per line, `#` for comments).
 
-Visit [Open issues](https://github.com/XiaoYouChR/Ghost-Downloader-3/issues) to see all requested features (and known issues).
+```
+gd3 batch urls.txt -o ./downloads
+```
 
-<!-- SPONSOR -->
-## Sponsor
+### `config` / `c`
 
-| [![SignPath](https://signpath.org/assets/favicon-50x50.png)](https://signpath.org/) | Free code signing provided by [SignPath.io](https://about.signpath.io/), with certificates by [SignPath Foundation](https://signpath.org/) |
-|-------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------|
+Show or set configuration:
 
-<!-- CONTRIBUTING -->
-## Contributing
+```bash
+gd3 config                    # list all settings
+gd3 config downloadFolder     # show a single value
+gd3 config downloadFolder ~/Downloads  # set a value
+```
 
-Contributions make the open source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Key settings:
 
-If you have a suggestion, fork the repo and create a pull request. You can also simply open an issue with the "Enhancement" tag. Don't forget to give the project a star⭐! Thanks again!
+| Key | Default | Description |
+|-----|---------|-------------|
+| `downloadFolder` | `~/Downloads` | Default output directory |
+| `maxTaskNum` | `3` | Concurrent downloads |
+| `proxyServer` | `Auto` | Proxy (`http://...`, `socks5://...`, or `Auto`/`None`) |
+| `isSpeedLimitEnabled` | `False` | Enable download speed limit |
+| `speedLimitation` | `4194304` | Speed limit in bytes/sec (4 MB/s) |
+| `clientProfile` | `auto` | Browser fingerprint |
+| `shouldVerifySsl` | `False` | Verify SSL certificates |
 
-1. Fork the Project
-2. Create your Feature Branch (git checkout -b feature/AmazingFeature)
-3. Commit your Changes (git commit -m 'Add some AmazingFeature')
-4. Push to the Branch (git push origin feature/AmazingFeature)
-5. Open a Pull Request
+### `info` / `i`
 
-Thanks to all contributors who have participated in this project!
+Show engine version, loaded feature packs, and registered runtimes.
 
-[![Contributors](http://contrib.nn.ci/api?repo=XiaoYouChR/Ghost-Downloader-3)](https://github.com/XiaoYouChR/Ghost-Downloader-3/graphs/contributors)
+### `list-packs` / `lp`
 
-## Translation Contributors
+List all loaded feature packs and their URL parsers.
 
-> [!TIP]
-> If you'd like to help translate Ghost Downloader, welcome to join the Crowdin project: [ghost-downloader](https://crowdin.com/project/ghost-downloader)
+## Protocols
 
-<!-- CROWDIN-CONTRIBUTORS-START -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top">
-        <a href="https://crowdin.com/profile/XiaoYouChR"><img alt="logo" style="width: 64px" src="https://crowdin-static.cf-downloads.crowdin.com/avatar/17224586/medium/60e068e9c11d951cadf3eccec0afbeab.jpeg" />
-          <br />
-          <sub><b>XiaoYouChR</b></sub></a>
-        <br />
-        <sub><b>14249 words</b></sub>
-      </td>
-      <td align="center" valign="top">
-        <a href="https://crowdin.com/profile/i0ntempest"><img alt="logo" style="width: 64px" src="https://crowdin-static.cf-downloads.crowdin.com/avatar/17636930/medium/f6bf4e67c7b87221f2e7e04345f8c6b2.jpeg" />
-          <br />
-          <sub><b>i0ntempest</b></sub></a>
-        <br />
-        <sub><b>1988 words</b></sub>
-      </td>
-      <td align="center" valign="top">
-        <a href="https://crowdin.com/profile/ReM2812"><img alt="logo" style="width: 64px" src="https://crowdin-static.cf-downloads.crowdin.com/avatar/17626502/medium/8d12a395a224c0f9d5546a8e5621186c.jpg" />
-          <br />
-          <sub><b>ReM2812</b></sub></a>
-        <br />
-        <sub><b>1010 words</b></sub>
-      </td>
-      <td align="center" valign="top">
-        <a href="https://crowdin.com/profile/Dima88888"><img alt="logo" style="width: 64px" src="https://crowdin-static.cf-downloads.crowdin.com/avatar/16304162/medium/706302f8224fffaf9d81f8cc4168ed24_default.png" />
-          <br />
-          <sub><b>Dima88888</b></sub></a>
-        <br />
-        <sub><b>115 words</b></sub>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<!-- CROWDIN-CONTRIBUTORS-END -->
+| Protocol | Pack | Notes |
+|----------|------|-------|
+| HTTP/HTTPS | `http_pack` | Full range-request support, multi-segment download |
+| FTP/FTPS | `ftp_pack` | |
+| BitTorrent / Magnet | `bittorrent_pack` | Requires `libtorrent` (`pip install .[bittorrent]`) |
+| HLS / M3U8 | `m3u8_pack` | Stream download, live recording |
+| MPEG-DASH | `m3u8_pack` | |
+| eD2k / eMule | `ed2k_pack` | Requires `goed2kd` runtime |
+| YouTube | `yt-dlp_pack` | Delegates to `yt-dlp` (auto-installs) |
+| Bilibili | `bili_pack` | |
+| GitHub Releases | `github_pack` | |
+| HuggingFace | `huggingface_pack` | Model/dataset downloads |
+| FFmpeg | `ffmpeg_pack` | Merge/transcode steps (uses system `ffmpeg`) |
+| Disk copy | `disk_pack` | Local file copying |
 
-<!-- LICENSE -->
+Missing packs are skipped gracefully with a warning — you don't need every runtime installed.
+
+## Configuration file
+
+`gd3` stores config at:
+
+- **Linux/macOS:** `~/.config/ghost-downloader-3/config.json`
+- **Windows:** `%USERPROFILE%\.config\ghost-downloader-3\config.json`
+
+It's a plain JSON file — edit it directly if you prefer.
+
+## CLI vs GUI
+
+Ghost Downloader 3 is also available as a [PySide6 Qt GUI application](https://github.com/XiaoYouChR/Ghost-Downloader-3). This CLI edition:
+
+- Shares **the same download engine** — all `features/*/task.py` files are unchanged
+- Replaces PySide6 with lightweight compatibility modules — no Qt runtime needed
+- Replaces Qt services (`QObject`, `QTimer`, `QThread`) with pure asyncio
+- Omits GUI-only files (`app/view/`, `app/assets/`, `app/startup.py`, etc.)
+- Omits the Jack Yao OS catalog pack (depends on the removed `app.view` module)
+
+## Development
+
+```bash
+git clone https://github.com/literallynolife2345/ghost-downloader-3-cli
+cd ghost-downloader-3-cli
+python -m venv .venv
+.venv\Scripts\activate   # Windows
+source .venv/bin/activate # Linux/macOS
+pip install -e .
+```
+
+To include BitTorrent support:
+
+```bash
+pip install -e ".[bittorrent]"
+```
+
 ## License
 
-Distributed under the GPL v3.0 License. Open `LICENSE` for more details.
-
-Copyright © 2024-2026 XiaoYouChR.
-
-<!-- CONTACT -->
-## Contact
-
-> [!IMPORTANT]
-> Welcome to join the Ghost Downloader user group: [756042420](https://qm.qq.com/q/gPk6FR1Hby)
-
-* [E-mail](mailto:XiaoYouChR@qq.com) - XiaoYouChR@qq.com
-
-<!-- ACKNOWLEDGMENTS -->
-## References
-
-* [aioftp](https://github.com/aio-libs/aioftp) Ftp client/server for asyncio
-* [cat-catch](https://github.com/xifangczy/cat-catch) Browser Resource Sniffing Extension
-* [desktop-notifier](https://github.com/samschott/desktop-notifier) Python library for cross-platform desktop notifications
-* [FFmpeg](https://ffmpeg.org/) A complete, cross-platform solution to record, convert and stream audio and video
-* [goed2k](https://github.com/monkeyWie/goed2k) The eD2k download daemon behind Ghost Downloader's eD2k support
-* [libtorrent](https://github.com/arvidn/libtorrent) An efficient feature complete C++ bittorrent implementation
-* [loguru](https://github.com/Delgan/loguru) A library which aims to bring enjoyable logging in Python
-* [m3u8](https://github.com/globocom/m3u8) Python m3u8 parser
-* [mpegdash](https://github.com/sangoma/mpegdash) MPEG-DASH MPD parser
-* [N_m3u8DL-RE](https://github.com/nilaoda/N_m3u8DL-RE) Cross-platform DASH/HLS/MSS download tool powering Ghost Downloader's M3U8 support
-* [Nuitka](https://github.com/Nuitka/Nuitka) The Python compiler
-* [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets) Powerful, extensible, and elegant Fluent Design-style widget library
-* [PySide6](https://github.com/PySide/pyside-setup) The official Python module
-* [QuickJS-NG](https://github.com/quickjs-ng/quickjs) A small and embeddable JavaScript engine
-* [uvloop](https://github.com/MagicStack/uvloop) Ultra fast asyncio event loop
-* [winloop](https://github.com/Vizonex/Winloop) An alternative to uvloop for Windows
-* [wreq](https://github.com/0x676e67/wreq-python) An ergonomic Python HTTP client with TLS fingerprint emulation
-* [yt-dlp](https://github.com/yt-dlp/yt-dlp) A feature-rich command-line audio/video downloader
-
-## Acknowledgments
-
-* [@zhiyiYo](https://github.com/zhiyiYo/) is amazing and provided a lot of help for this project.
-* [@空糖_SuGar](https://github.com/SuGar0218/) created the project banner.
-
-<picture>
-  <source
-    media="(prefers-color-scheme: dark)"
-    srcset="
-      https://api.star-history.com/svg?repos=XiaoYouChR/Ghost-Downloader-3&type=Date&theme=dark
-    "
-  />
-  <source
-    media="(prefers-color-scheme: light)"
-    srcset="
-      https://api.star-history.com/svg?repos=XiaoYouChR/Ghost-Downloader-3&type=Date&theme=dark
-    "
-  />
-  <img
-    alt="Star History Chart"
-    src="https://api.star-history.com/svg?repos=XiaoYouChR/Ghost-Downloader-3&type=Date&theme=dark"
-  />
-</picture>
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[forks-shield]: https://img.shields.io/github/forks/XiaoYouChR/Ghost-Downloader-3.svg?style=for-the-badge
-[forks-url]: https://github.com/XiaoYouChR/Ghost-Downloader-3/network/members
-[stars-shield]: https://img.shields.io/github/stars/XiaoYouChR/Ghost-Downloader-3.svg?style=for-the-badge
-[stars-url]: https://github.com/XiaoYouChR/Ghost-Downloader-3/stargazers
-[issues-shield]: https://img.shields.io/github/issues/XiaoYouChR/Ghost-Downloader-3.svg?style=for-the-badge
-[issues-url]: https://github.com/XiaoYouChR/Ghost-Downloader-3/issues
-[release-shield]: https://img.shields.io/github/v/release/XiaoYouChR/Ghost-Downloader-3?style=for-the-badge
-[release-url]: https://github.com/XiaoYouChR/Ghost-Downloader-3/releases/latest
-[downloads-shield]: https://img.shields.io/github/downloads/XiaoYouChR/Ghost-Downloader-3/total?style=for-the-badge
+GNU General Public License v3.0 — same as the original project.

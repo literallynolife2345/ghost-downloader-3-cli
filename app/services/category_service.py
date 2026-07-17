@@ -1,11 +1,13 @@
+"""
+Category routing service for Ghost Downloader 3.
+"""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 from uuid import uuid4
-
-from PySide6.QtCore import QObject, Signal
 
 from app.config.cfg import cfg
 
@@ -14,87 +16,40 @@ if TYPE_CHECKING:
 
 
 DEFAULT_CATEGORY_PRESETS: list[dict[str, Any]] = [
-    {
-        "categoryId": "cat_video",
-        "name": "视频",
-        "icon": "VIDEO",
-        "folder": "{default}/Video",
-        "extensions": [
-            "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm",
-            "m4v", "rmvb", "rm", "mpg", "mpeg", "mpe", "mpa",
-            "3gp", "ts", "m2ts", "ogv", "asf", "qt",
-        ],
-    },
-    {
-        "categoryId": "cat_audio",
-        "name": "音频",
-        "icon": "MUSIC",
-        "folder": "{default}/Audio",
-        "extensions": [
-            "mp3", "flac", "wav", "aac", "ogg", "m4a", "wma",
-            "ape", "opus", "mid", "ra", "aif",
-        ],
-    },
-    {
-        "categoryId": "cat_image",
-        "name": "图片",
-        "icon": "PHOTO",
-        "folder": "{default}/Images",
-        "extensions": [
-            "jpg", "jpeg", "png", "gif", "bmp", "webp", "avif",
-            "svg", "tif", "tiff", "ico", "heic", "heif",
-        ],
-    },
-    {
-        "categoryId": "cat_subtitle",
-        "name": "字幕",
-        "icon": "CHAT",
-        "folder": "{default}/Subtitles",
-        "extensions": [
-            "srt", "ass", "ssa", "sub", "sup", "idx", "vtt",
-            "lrc", "smi", "psb",
-        ],
-    },
-    {
-        "categoryId": "cat_document",
-        "name": "文档",
-        "icon": "DOCUMENT",
-        "folder": "{default}/Documents",
-        "extensions": [
-            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
-            "txt", "epub", "mobi", "azw3", "rtf", "odt", "ods",
-            "odp", "md", "csv", "nfo", "chm",
-        ],
-    },
-    {
-        "categoryId": "cat_archive",
-        "name": "压缩包",
-        "icon": "ZIP_FOLDER",
-        "folder": "{default}/Archives",
-        "extensions": [
-            "zip", "rar", "7z", "tar", "gz", "gzip", "bz2",
-            "xz", "tgz", "tbz2", "zst", "ace", "arj", "cab", "lzh",
-            "sea", "sit", "sitx", "z", "001",
-            "tar.gz", "tar.bz2", "tar.xz", "tar.zst",
-        ],
-    },
-    {
-        "categoryId": "cat_program",
-        "name": "程序",
-        "icon": "APPLICATION",
-        "folder": "{default}/Programs",
-        "extensions": [
-            "exe", "msi", "msu", "msp", "apk", "apks", "apkm",
-            "dmg", "pkg", "deb", "rpm", "appimage", "iso", "img",
-            "esd", "wim", "bin", "jar", "bat", "sh", "com",
-        ],
-    },
-    {
-        "categoryId": "cat_other",
-        "name": "其他",
-        "icon": "HELP",
-        "extensions": [],
-    },
+    {"categoryId": "cat_video", "name": "Video", "icon": "VIDEO",
+     "folder": "{default}/Video",
+     "extensions": ["mp4", "mkv", "avi", "mov", "wmv", "flv", "webm",
+                    "m4v", "rmvb", "rm", "mpg", "mpeg", "mpe", "mpa",
+                    "3gp", "ts", "m2ts", "ogv", "asf", "qt"]},
+    {"categoryId": "cat_audio", "name": "Audio", "icon": "MUSIC",
+     "folder": "{default}/Audio",
+     "extensions": ["mp3", "flac", "wav", "aac", "ogg", "m4a", "wma",
+                    "ape", "opus", "mid", "ra", "aif"]},
+    {"categoryId": "cat_image", "name": "Image", "icon": "PHOTO",
+     "folder": "{default}/Images",
+     "extensions": ["jpg", "jpeg", "png", "gif", "bmp", "webp", "avif",
+                    "svg", "tif", "tiff", "ico", "heic", "heif"]},
+    {"categoryId": "cat_subtitle", "name": "Subtitles", "icon": "CHAT",
+     "folder": "{default}/Subtitles",
+     "extensions": ["srt", "ass", "ssa", "sub", "sup", "idx", "vtt",
+                    "lrc", "smi", "psb"]},
+    {"categoryId": "cat_document", "name": "Documents", "icon": "DOCUMENT",
+     "folder": "{default}/Documents",
+     "extensions": ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+                    "txt", "epub", "mobi", "azw3", "rtf", "odt", "ods",
+                    "odp", "md", "csv", "nfo", "chm"]},
+    {"categoryId": "cat_archive", "name": "Archives", "icon": "ZIP_FOLDER",
+     "folder": "{default}/Archives",
+     "extensions": ["zip", "rar", "7z", "tar", "gz", "gzip", "bz2",
+                    "xz", "tgz", "tbz2", "zst", "ace", "arj", "cab", "lzh",
+                    "sea", "sit", "sitx", "z", "001",
+                    "tar.gz", "tar.bz2", "tar.xz", "tar.zst"]},
+    {"categoryId": "cat_program", "name": "Programs", "icon": "APPLICATION",
+     "folder": "{default}/Programs",
+     "extensions": ["exe", "msi", "msu", "msp", "apk", "apks", "apkm",
+                    "dmg", "pkg", "deb", "rpm", "appimage", "iso", "img",
+                    "esd", "wim", "bin", "jar", "bat", "sh", "com"]},
+    {"categoryId": "cat_other", "name": "Other", "icon": "HELP", "extensions": []},
 ]
 
 
@@ -107,8 +62,7 @@ class Category:
     folder: str | None = None
 
     def toIcon(self):
-        from qfluentwidgets import FluentIcon
-        return getattr(FluentIcon, self.icon, FluentIcon.TAG)
+        return None  # icons not supported in headless mode
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> Category:
@@ -117,7 +71,6 @@ class Category:
             normalized = str(ext).strip().lstrip(".").lower()
             if normalized and normalized not in extensions:
                 extensions.append(normalized)
-
         return cls(
             categoryId=data.get("categoryId") or f"cat_{uuid4().hex}",
             name=data.get("name") or "",
@@ -127,11 +80,10 @@ class Category:
         )
 
 
-class CategoryService(QObject):
-    categoriesChanged = Signal()
+class CategoryService:
+    """Manages download categories."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self):
         self._categories: list[Category] = []
         self._load()
 
@@ -144,8 +96,7 @@ class CategoryService(QObject):
         self._categories = [Category.fromDict(data) for data in raw]
 
     def _save(self) -> None:
-        cfg.set(cfg.categoryRules, [asdict(c) for c in self._categories])
-        self.categoriesChanged.emit()
+        cfg.categoryRules.value = [asdict(c) for c in self._categories]
 
     def categories(self) -> list[Category]:
         return list(self._categories)
@@ -160,12 +111,10 @@ class CategoryService(QObject):
         suffixes = [s.lstrip(".").lower() for s in Path(filename).suffixes]
         if not suffixes:
             return ""
-
         candidates: list[str] = []
         if len(suffixes) >= 2:
             candidates.append(".".join(suffixes[-2:]))
         candidates.append(suffixes[-1])
-
         for candidate in candidates:
             for category in self._categories:
                 if candidate in category.extensions:

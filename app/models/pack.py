@@ -1,18 +1,26 @@
+"""
+Feature-pack plugin system for Ghost Downloader 3.
+
+Defines the base classes that every protocol pack (HTTP, BitTorrent, FTP, …)
+subclasses.
+"""
+
 from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import QCoreApplication, Signal
-
 from app.config.cfg import cfg, ConfigItem
 
 if TYPE_CHECKING:
     from app.models.task import Task, TaskOptions
-    from PySide6.QtWidgets import QWidget
-    from qfluentwidgets import FluentIcon
-    from app.view.components.setting_card_group import CollapsibleSettingCardGroup
+    from typing import Any
+
+
+def _translate(text: str) -> str:
+    """Stand-in for ``QCoreApplication.translate`` — returns the text as-is."""
+    return text
 
 
 @dataclass(frozen=True)
@@ -37,6 +45,12 @@ class TaskParser:
 
 
 class PackConfig:
+    """Pack-level configuration.
+
+    Subclasses declare ``ConfigItem`` class attributes which are automatically
+    registered on the global ``cfg`` object via ``__init_subclass__``.
+    """
+
     _items: dict[str, ConfigItem] = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -48,11 +62,12 @@ class PackConfig:
 
     @classmethod
     def load(cls) -> None:
+        """Load pack config values from ``cfg.file``."""
         if not cls._items:
             return
-        import json
         try:
-            with open(cfg.file, encoding="utf-8") as f:
+            with open(cfg._config_path(), encoding="utf-8") as f:
+                import json
                 data = json.load(f)
         except Exception:
             return
@@ -65,26 +80,27 @@ class PackConfig:
                     if (key := k + "." + name) in cls._items:
                         cls._items[key].deserializeFrom(value)
 
-    def settingGroups(self, parent: QWidget) -> list[CollapsibleSettingCardGroup]:
+    def settingGroups(self, parent: Any = None) -> list:
         return []
 
     def isFileAssociationEnabled(self) -> bool:
         return True
 
-    def fileAssociationToggle(self) -> Signal | None:
+    def fileAssociationToggle(self):
         return None
 
     def tr(self, text: str) -> str:
-        return QCoreApplication.translate(self.__class__.__name__, text)
+        return _translate(text)
 
 
 class BinaryRuntime:
+    """Represents an external binary (e.g. ffmpeg, yt-dlp) needed by a pack."""
+
     name: str = ""
     canInstall: bool = False
-    # 自描述展示信息（title 用 QT_TRANSLATE_NOOP 声明原文，展示端 translate）
     title: str = ""
     description: str = ""
-    icon: FluentIcon | None = None
+    icon: str = ""
     isRecommended: bool = False
 
     @property
@@ -116,11 +132,18 @@ class BinaryRuntime:
 
 
 class PackPage:
+    """A page contributed by a pack (used in the original GUI)."""
     icon: ...
     title: str = ""
 
 
 class FeaturePack:
+    """Base class for every protocol pack.
+
+    Subclasses override hooks to contribute parsers, runtimes, and file types.
+    UI-related hooks (``taskCard``, ``optionCards``, …) default to no-ops.
+    """
+
     packId: str = ""
     config: PackConfig | None = None
     proxySchemes: set[str] | None = None
@@ -129,17 +152,15 @@ class FeaturePack:
         return []
 
     def taskCard(self, task: Task, parent=None):
-        from app.view.cards.task_cards import UniversalTaskCard
-        return UniversalTaskCard(task, parent)
+        return None
 
     def draftCard(self, task: Task, parent=None):
-        from app.view.cards.draft_cards import UniversalDraftCard
-        return UniversalDraftCard(task, parent)
+        return None
 
-    def optionCards(self, task: Task, parent=None) -> list[QWidget]:
+    def optionCards(self, task: Task, parent=None):
         return []
 
-    def editCards(self, task: Task, parent=None) -> list[QWidget]:
+    def editCards(self, task: Task, parent=None):
         return self.optionCards(task, parent)
 
     def runtimes(self) -> list[BinaryRuntime]:
@@ -158,4 +179,4 @@ class FeaturePack:
         pass
 
     def tr(self, text: str) -> str:
-        return QCoreApplication.translate(self.__class__.__name__, text)
+        return _translate(text)

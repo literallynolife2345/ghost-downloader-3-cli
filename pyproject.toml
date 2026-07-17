@@ -1,28 +1,52 @@
 [project]
-name = "ghost-downloader-3"
-version = "4.0"
-description = "An AI-boost cross-platform multi-protocol fluent-design concurrent downloader built with Python & Qt."
+name = "ghost-downloader-3-cli"
+version = "4.1.1"
+description = "Multi-protocol downloader CLI supporting HTTP, FTP, BitTorrent, HLS, eD2k, YouTube, and more."
 readme = "README.md"
 requires-python = ">=3.11"
+license = { text = "GPL-3.0" }
+authors = [
+    { name = "XiaoYouChR" },
+]
+keywords = ["downloader", "cli", "http", "bittorrent", "m3u8", "yt-dlp", "wget"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: File Transfer Protocol (FTP)",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Utilities",
+]
+
 dependencies = [
     "aioftp[socks]>=0.27.2",
-    "desktop-notifier>=6.2.0",
-    "libtorrent>=2.0.13",
-    "libtorrent-windows-dll>=0.0.3; sys_platform == 'win32'",
     "loguru>=0.7.3",
     "m3u8>=6.0.0",
     "mpegdash>=0.4.1",
-    "nuitka>=4.1.3",
-    "pyside6~=6.10.3",
-    "pyside6-fluent-widgets>=1.11.2",
-    "qrcode[png]>=8.2",
     "wreq>=0.12.0",
     "winloop>=0.6.0; sys_platform == 'win32'",
     "uvloop>=0.22.1; sys_platform != 'win32'",
-    "pyobjc-framework-Cocoa>=10.0; sys_platform == 'darwin'",
 ]
+
+[project.optional-dependencies]
+bittorrent = ["libtorrent>=2.0.13"]
+gui = ["pyside6~=6.10.3", "pyside6-fluent-widgets>=1.11.2"]
+
+[project.urls]
+Homepage = "https://github.com/literallynolife2345/ghost-downloader-3-cli"
+Source = "https://github.com/literallynolife2345/ghost-downloader-3-cli"
+Original = "https://github.com/XiaoYouChR/Ghost-Downloader-3"
+
+[project.scripts]
+gd3 = "gd3.cli:main"
 
 [dependency-groups]
 dev = [
     "types-libtorrent>=2.0.11.20250816",
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*", "features*", "gd3*"]
